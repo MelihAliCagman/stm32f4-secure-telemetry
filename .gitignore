@@ -1,0 +1,31 @@
+# CubeIDE derleme çıktıları
+Debug/
+Release/
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.su
+*.cyclo
+
+# CubeIDE kişisel ayarlar
+.settings/
+.metadata/
+
+# Sırlar (PSK vb.) asla git'e girmez
+secrets.h
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Editör
+.vscode/
+
+# Yerel çalışma/yönerge dosyaları (GitHub'a gitmez)
+CLAUDE.md
+YOL_HARITASI.md
