@@ -22,8 +22,42 @@
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
+#define RCC_AHB1ENR   (*(volatile uint32_t *)0x40023830)
+#define GPIOD_MODER   (*(volatile uint32_t *)0x40020C00)
+#define GPIOD_ODR     (*(volatile uint32_t *)0x40020C14)
+#define GPIOA_IDR     (*(volatile uint32_t *)0x40020010)
+#define RCC_CR        (*(volatile uint32_t *)0x40023800)
+#define FLASH_ACR     (*(volatile uint32_t *)0x40023C00)
+#define RCC_CFGR      (*(volatile uint32_t *)0x40023808)
+#define RCC_PLLCFGR (*(volatile uint32_t *)0x40023804)
+
+
 int main(void)
 {
-    /* Loop forever */
-	for(;;);
+	RCC_CR |= (1 << 16);                // HSEON
+	while (!(RCC_CR & (1 << 17)));      // HSERDY
+
+	FLASH_ACR = 5;                  // wait state sayısını kendin bul
+	RCC_CFGR |= (5 << 10);          // PPRE1 = /4  -> APB1 = 42 MHz
+	RCC_CFGR |= (4 << 13);          // PPRE2 = /2  -> APB2 = 84 MHz
+
+	RCC_PLLCFGR = (RCC_PLLCFGR & 0xF0000000) | (8 << 0) | (336 << 6) | (0 << 16) | (1 << 22) | (7 << 24);
+	RCC_CR |= (1 << 24);                 // PLLON: PLL'i çalıştır
+	while (!(RCC_CR & (1 << 25)));       // PLLRDY: kilitlenene kadar bekle
+
+	RCC_CFGR |= (2 << 0);                          // SW = 10: sistem saati = PLL
+	while ((RCC_CFGR & (3 << 2)) != (2 << 2));     // SWS = 10 olana kadar bekle
+
+    RCC_AHB1ENR |= (1 << 3) | (1 << 0);    // GPIOD ve GPIOA saatleri
+    GPIOD_MODER |= (1 << 24);              // PD12 çıkış
+
+    for(;;)
+    {
+        if (GPIOA_IDR & (1 << 0))          // PA0 = 1 mi? (buton basılı)
+            GPIOD_ODR |=  (1 << 12);       // LED yan
+        else
+            GPIOD_ODR &= ~(1 << 12);       // LED sön
+    }
 }
+
+
